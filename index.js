@@ -88,9 +88,9 @@ client.on('message', message => {
                         }
 
                         let helpEmbed3 = new Discord.MessageEmbed(UniversalEmbed)
-                        .setTitle('Command category')
+                        .setTitle(`${old_msg[0].toUpperCase() + old_msg.slice(1, old_msg.length)}`)
                         .setDescription('A list and description of every functioning command in a specified category.')
-                        .addField(`${old_msg[0].toUpperCase() + old_msg.slice(1, old_msg.length)}`, old_comp);
+                        .addField('Commands', old_comp);
 
                         message.channel.send(helpEmbed3)
                         .catch(console.error);
