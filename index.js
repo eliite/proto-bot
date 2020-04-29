@@ -323,7 +323,6 @@ client.on('message', message => {
                         break;
                     }
                 }
-                console.log(new_color);
 
                 let new_comp = '';
                 for (let i = 0; i < 3; i++) {
