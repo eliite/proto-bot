@@ -490,6 +490,9 @@ client.on('message', message => {
                     }
                 }
 
+                for (let i = 0; i < coords.length; i++)
+                    coords[i] = Math.max(0, Math.min(coords[i], 1280));
+
                 if (!arc) {
                     if (coords.length === 2)
                         ctx.fillRect(parseInt(coords[0]),parseInt(coords[1]), 16, 16);
