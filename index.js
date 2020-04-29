@@ -9,8 +9,10 @@ const ctx = canvas.getContext('2d');
 var color = '';
 
 client.on('ready', () => {
-  console.log('I am ready!');
-  client.user.setPresence({ activity: { name: 'with motivation' }, status: 'online' })
+  console.clear();
+  console.log('PROTOTYPE LOADED');
+
+  client.user.setPresence({ activity: { name: "for commands | !help", type: "WATCHING"}, status: 'online'});
   
   color = "#000000";
   ctx.fillStyle = "#FFFFFF";
