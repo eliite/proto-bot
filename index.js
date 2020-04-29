@@ -12,7 +12,7 @@ client.on('ready', () => {
   console.log('I am ready!');
   client.user.setPresence({ activity: { name: 'with motivation' }, status: 'online' })
   
-  color = "#ffffff";
+  color = "#000000";
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, 1280, 1280);
 });
@@ -31,17 +31,21 @@ const command_list = [
     [ "Configuration", "Prefix", "change the prefix of commands", "!prefix [prefix]"],
     [ "Configuration", "Nick", "set the name of the bot", "!nick [nickname]"],
     [ "Configuration", "Info", "give information about the bot"],
+
     [ "Fun", "Reverse", "reverse a word or phrase", "!reverse [phrase]"],
     [ "Fun", "RPS", "play rock, paper, scissors", "!rps [rock|paper|scissors]"],
     [ "Fun", "Flip", "flip a coin"],
     [ "Fun", "Color", "show information about a given color", "!color #000(OR #000000 - 3 or 6 digit hex)"],
     [ "Fun", "RColor", "preview a generated color"],
+    [ "Fun", "Echo", "make the bot repeat a phrase", "!echo [phrase]"],
+
     [ "Draw", "Draw", "create a canvas to modify pixels individually [change color]", "!draw [position x],[position y],[width],[height]"],
     [ "Draw", "Draw [pen]", "change the color of the pen the canvas uses", "!draw pen #000(OR #000000 - 3 or 6 digit hex)"],
     [ "Draw", "Draw [save]", "send an attachment of the current canvas to save"],
     [ "Draw", "Draw [reset]", "reset the canvas"],
     [ "Draw", "Draw [random]", "draw 10 random shapes on the canvas", "!draw random [count]"],
-    [ "Draw", "Echo", "make the bot repeat a phrase", "!echo [phrase]"],
+    [ "Draw", "Draw [circle]", "draw a circle with given arguments", "!draw circle (required)[position x],[position y],[radius],(optional)[starting angle],[ending angle]"]
+
     [ "Moderation", "Uptime", "view how long the bot has been online"],
     [ "Moderation", "Prune", "bulk delete messages younger than 14 days", "!prune [count]"],
     [ "Moderation", "Clean", "clean all bot messages"],
@@ -52,8 +56,6 @@ const command_list = [
     [ "Moderation", "Ban [save]", "ban a user; but save their messages"],
     [ "Moderation", "Ban [match]", "ban users sending matching text", "!ban match [phrase to match]"]
 ];
-
-// test commit
 
 var pen_color = '';
 var prefix = '!';
@@ -373,6 +375,7 @@ client.on('message', message => {
                 break;
 
             case 'draw':
+                let arc = false;
                 if (String(args).length <= 0) {
                     message.channel.send("Invalid input. Use coordinates in the form (x,y).")
                     .then (msg => { msg.delete({timeout: 15000 })})
@@ -395,6 +398,7 @@ client.on('message', message => {
                     .catch(console.error);
                     break;
                 }
+
                 else if (String(args).indexOf('random') !== -1) {
 
                     let c2 = String(message.content.split(message.content.indexOf("random")+1, message.content.length)).replace(/[^0-9]/gi, "");
@@ -422,29 +426,54 @@ client.on('message', message => {
                     break;
                 }
                 else if (String(args).indexOf('pen') !== -1) {
-                    if (String(args).length <= 3) {
-                        message.channel.send("Invalid input. Use a color value in the form #000 or #000000.")
+                    let new_arg = String(args).replace(/ {1,9999}/gi, "");
+                    new_arg = String(new_arg).replace(/,{1,9999}/g, "").match(/#[A-F|0-9]{3,6}/gi);
+
+                    if (new_arg !== null) 
+                        new_arg = new_arg[0];
+                    else {
+                        message.channel.send("Invalid input. Use a color value in the form #ABC or #ABCDEF.")
+                        .then (msg => { msg.delete({timeout: 15000 })})
+                        .catch(console.error);
+                        break;
+                    }
+                    
+                    if (new_arg.length != 4 && new_arg.length != 7) {
+                        message.channel.send("Invalid input. Use a color value in the form #ABC or #ABCDEF.")
+                        .then (msg => { msg.delete({timeout: 15000 })})
+                        .catch(console.error);
+                        break;
+                    }
+                    
+                    color = new_arg.replace(/#[A-F|0-9][A-F|0-9][A-F|0-9][A-F|0-9][A-F|0-9][A-F|0-9]/gi, "");
+                    color = new_arg.replace(color, "");
+                    if (color === '') {
+                        color = new_arg.replace(/ {1,9999}/gi, "").replace(/#[A-F|0-9][A-F|0-9][A-F|0-9]/gi, "");
+                        color = new_arg.replace(color, "");
+                        color = `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`;
+                        if (color === '') {
+                            message.channel.send("Invalid input. Use a color value in the form #ABC or #ABCDEF.")
+                            .then (msg => { msg.delete({timeout: 15000 })})
+                            .catch(console.error);
+                            break;
+                        } else {
+                            message.channel.send(`Draw color changed to ${color}.`)
+                            .then (msg => { msg.delete({timeout: 15000 })})
+                            .catch(console.error);
+                            break;
+                        }
+                    } else {
+                        message.channel.send(`Draw color changed to ${color}.`)
                         .then (msg => { msg.delete({timeout: 15000 })})
                         .catch(console.error);
                         break;
                     }
 
-                    color = String(args).replace(/#[A-Z|0-9][A-Z|0-9][A-Z|0-9][A-Z|0-9][A-Z|0-9][A-Z|0-9]/gi, "");
-                    color = String(args).replace(color, "");
-                    if (color === '') {
-                        color = String(args).replace(/#[A-Z|0-9][A-Z|0-9][A-Z|0-9]/gi, "");
-                        color = String(args).replace(color, "");
-                        color = `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`;
-                        if (color === '') {
-                            message.channel.send("Invalid input. Use a color value in the form #000 or #000000.")
-                            .then (msg => { msg.delete({timeout: 15000 })})
-                            .catch(console.error);
-                            break;
-                        }
-                    }
-
                     break;
                 }
+                else if (String(args).indexOf('circle') !== -1) 
+                    arc = true;
+
                 ctx.fillStyle = color;
 
                 let coord = String(args).replace(/[^0-9|.|,]/gi, "");
@@ -461,15 +490,33 @@ client.on('message', message => {
                     }
                 }
 
-                if (coords.length === 2)
-                    ctx.fillRect(parseInt(coords[0]),parseInt(coords[1]), 16, 16);
-                else if (coords.length === 4)
-                    ctx.fillRect(parseInt(coords[0]),parseInt(coords[1]), parseInt(coords[2]), parseInt(coords[3]));
-                else {
-                        message.channel.send("Invalid input. Use coordinates and size in the format (x,y,w,h).")
-                        .then (msg => { msg.delete({timeout: 15000 })})
-                        .catch(console.error);
-                        break;
+                if (!arc) {
+                    if (coords.length === 2)
+                        ctx.fillRect(parseInt(coords[0]),parseInt(coords[1]), 16, 16);
+                    else if (coords.length === 4)
+                        ctx.fillRect(parseInt(coords[0]),parseInt(coords[1]), parseInt(coords[2]), parseInt(coords[3]));
+                    else {
+                            message.channel.send("Invalid input. Use coordinates and size in the format (x,y,w,h).")
+                            .then (msg => { msg.delete({timeout: 15000 })})
+                            .catch(console.error);
+                            break;
+                    }
+                }
+                else if (arc) {
+                    if (coords.length === 3) {
+                        ctx.arc(parseInt(coords[0]),parseInt(coords[1]), parseInt(coords[2]), 0, 2*Math.PI);
+                        ctx.fill();
+                    }
+                    else if (coords.length === 5) {
+                        ctx.arc(parseInt(coords[0]),parseInt(coords[1]), parseInt(coords[2]), parseInt(coords[3]), parseInt(coords[4]));
+                        ctx.fill();
+                    }
+                    else {
+                            message.channel.send("Invalid input. Use coordinates and size in the format (x,y,r).")
+                            .then (msg => { msg.delete({timeout: 15000 })})
+                            .catch(console.error);
+                            break;
+                    }
                 }
 
                 let attachment = new Discord.MessageAttachment(canvas.toBuffer(), '../assets/discordjs.png');
