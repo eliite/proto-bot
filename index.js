@@ -53,6 +53,8 @@ const command_list = [
     [ "Moderation", "Ban [match]", "ban users sending matching text", "!ban match [phrase to match]"]
 ];
 
+// test commit
+
 var pen_color = '';
 var prefix = '!';
 client.on('message', message => {
