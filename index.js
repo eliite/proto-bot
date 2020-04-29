@@ -28,6 +28,7 @@ const UniversalEmbed = new Discord.MessageEmbed()
 const command_list = [
     [ "Configuration", "Help", "receive a list of every command"],
     [ "Configuration", "Help [command]", "show usage for a specific command", "!help ban"],
+    [ "Configuration", "Help [category]", "receive a list of commands for a category with their usage", "!help category [command]"],
     [ "Configuration", "Prefix", "change the prefix of commands", "!prefix [prefix]"],
     [ "Configuration", "Nick", "set the name of the bot", "!nick [nickname]"],
     [ "Configuration", "Info", "give information about the bot"],
@@ -44,7 +45,7 @@ const command_list = [
     [ "Draw", "Draw [save]", "send an attachment of the current canvas to save"],
     [ "Draw", "Draw [reset]", "reset the canvas"],
     [ "Draw", "Draw [random]", "draw 10 random shapes on the canvas", "!draw random [count]"],
-    [ "Draw", "Draw [circle]", "draw a circle with given arguments", "!draw circle (required)[position x],[position y],[radius],(optional)[starting angle],[ending angle]"]
+    [ "Draw", "Draw [circle]", "draw a circle with given arguments", "!draw circle (required)[position x],[position y],[radius],(optional)[starting angle],[ending angle]"],
 
     [ "Moderation", "Uptime", "view how long the bot has been online"],
     [ "Moderation", "Prune", "bulk delete messages younger than 14 days", "!prune [count]"],
@@ -67,17 +68,45 @@ client.on('message', message => {
         switch (String(command)) {
             case 'help':
                 if (String(args).length > 0) {
-                    let new_msg = message.content.slice(6, message.content.length).replace(/ {2,9999}/gi, " ");
-                    if (new_msg.indexOf(" ") !== -1) {
-                        if (new_msg.indexOf("[") === -1)
-                            new_msg = `${new_msg.slice(0, new_msg.indexOf(" ") + 1)}[${new_msg.slice(new_msg.indexOf(" ") + 1, new_msg.length)}`;
-                        if (new_msg.indexOf("]") === -1)
-                            new_msg = `${new_msg}]`;
-                    }
+                    if (String(args).indexOf("category") !== -1) {
+                        let old_msg = message.content.slice(15, message.content.length).replace(/ /gi, ""), old_comp = '';
+                        for (let i = 0; i < command_list.length; i++) {
+                            if (old_msg.toLowerCase() === command_list[i][0].toLowerCase()) {
+                                if (command_list[i][3] === undefined)
+                                    old_comp += `**${command_list[i][1]}**\nDescription: ${command_list[i][2]}\nUsage: !${command_list[i][1].toLowerCase()}\n\n`;
+                                else 
+                                    old_comp += `**${command_list[i][1]}**\nDescription: ${command_list[i][2]}\nUsage: ${command_list[i][3]}\n\n`;
+                            }
+                            else
+                                continue;
+                        }
+                        if (old_comp === '') {
+                            message.channel.send(`No matching category found.`)
+                            .then (msg => { msg.delete({timeout: 15000 })})
+                            .catch(console.error);
+                            break;
+                        }
 
-                    for (let i = 0; i < command_list.length; i++) {
-                        if (command_list[i][1]) {
-                            if (new_msg === command_list[i][1].toLowerCase()) {
+                        let helpEmbed3 = new Discord.MessageEmbed(UniversalEmbed)
+                        .setTitle('Command category')
+                        .setDescription('A list and description of every functioning command in a specified category.')
+                        .addField(`${old_msg[0].toUpperCase() + old_msg.slice(1, old_msg.length)}`, old_comp);
+
+                        message.channel.send(helpEmbed3)
+                        .catch(console.error);
+
+                        break;
+                    } else {
+                        let new_msg = message.content.slice(6, message.content.length).replace(/ {2,9999}/gi, " ");
+                        if (new_msg.indexOf(" ") !== -1) {
+                            if (new_msg.indexOf("[") === -1)
+                                new_msg = `${new_msg.slice(0, new_msg.indexOf(" ") + 1)}[${new_msg.slice(new_msg.indexOf(" ") + 1, new_msg.length)}`;
+                            if (new_msg.indexOf("]") === -1)
+                                new_msg = `${new_msg}]`;
+                        }
+
+                        for (let i = 0; i < command_list.length; i++) {
+                            if (new_msg.toLowerCase() === command_list[i][1].toLowerCase()) {
 
                                 let helpEmbed2 = new Discord.MessageEmbed(UniversalEmbed);
                                 if (command_list[i][3] === undefined) {
@@ -97,6 +126,16 @@ client.on('message', message => {
 
                                 message.channel.send(helpEmbed2)
                                 .catch(console.error);
+                                break;
+                            }
+                            else {
+                                if (i === command_list.length-1) {
+                                    message.channel.send(`No matching command found.`)
+                                    .then (msg => { msg.delete({timeout: 15000 })})
+                                    .catch(console.error);
+                                    break;
+                                } else
+                                    continue;
                             }
                         }
                     }
@@ -174,7 +213,7 @@ client.on('message', message => {
                 .setTitle("Bot information")
                 .setDescription("")
                 .addFields(
-                    {name: "Version", value: "1.0.0", inline: true},
+                    {name: "Version", value: "0.0.1", inline: true},
                     {name: "Creation", value: "April 27 2020", inline: true},
                     {name: "Creator", value: "elite#0001", inline: true},
                     {name: "Servers", value: `${client.guilds.cache.size}`, inline: true},
