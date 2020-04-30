@@ -601,19 +601,23 @@ client.on('message', message => {
                 break;
 
             case 'echo':
-                if (message.content.length > 6) {
-                    let repeat = message.content.slice(6, message.content.length);
+                if (!message.author.bot && message.guild.member(message.author)) {
+                    if (message.content.length > 6) {
+                        let repeat = message.content.slice(6, message.content.length);
 
-                    message.channel.send(repeat)
-                    .catch(console.error);
-                    break;
+                        message.channel.send(repeat)
+                        .catch(console.error);
+                        break;
+                    }
+                    else {
+                        message.channel.send(`Invalid input. Include a phrase for the bot to repeat.`)
+                        .then (msg => { msg.delete({timeout: 15000 })})
+                        .catch(console.error);
+                        break;
+                    }
                 }
-                else {
-                    message.channel.send(`Invalid input. Include a phrase for the bot to repeat.`)
-                    .then (msg => { msg.delete({timeout: 15000 })})
-                    .catch(console.error);
+                else 
                     break;
-                }
 
             case 'uptime':
                 var up = client.uptime;
