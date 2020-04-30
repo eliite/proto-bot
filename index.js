@@ -548,12 +548,16 @@ client.on('message', message => {
                 }
                 else if (arc) {
                     if (coords.length === 3) {
+                        ctx.beginPath();
                         ctx.arc(parseInt(coords[0]),parseInt(coords[1]), parseInt(coords[2]), 0, 2*Math.PI);
                         ctx.fill();
+                        ctx.closePath();
                     }
                     else if (coords.length === 5) {
+                        ctx.beginPath();
                         ctx.arc(parseInt(coords[0]),parseInt(coords[1]), parseInt(coords[2]), parseInt(coords[3]), parseInt(coords[4]));
                         ctx.fill();
+                        ctx.closePath();
                     }
                     else {
                             message.channel.send("Invalid input. Use coordinates and size in the format (x,y,r).")
