@@ -601,7 +601,7 @@ client.on('message', message => {
                 break;
 
             case 'echo':
-                if (!message.author.bot && message.guild.member(message.author)) {
+                if (!message.author.bot && !message.guild.member(message.author).bannable) {
                     if (message.content.length > 6) {
                         let repeat = message.content.slice(6, message.content.length);
 
@@ -616,8 +616,12 @@ client.on('message', message => {
                         break;
                     }
                 }
-                else 
+                else {
+                    message.channel.send(`Incorrect privileges. Only users above the BOT can use !echo.`)
+                    .then (msg => { msg.delete({timeout: 15000 })})
+                    .catch(console.error);
                     break;
+                }
 
             case 'uptime':
                 var up = client.uptime;
