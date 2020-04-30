@@ -7,6 +7,7 @@ const client = new Discord.Client();
 const canvas = Canvas.createCanvas(1280, 1280);
 const ctx = canvas.getContext('2d');
 var color = '';
+var last_deleted_message = new Discord.Message();
 
 client.on('ready', () => {
   console.clear();
@@ -41,6 +42,7 @@ const command_list = [
     [ "Fun", "Color", "show information about a given color", "!color #000(OR #000000 - 3 or 6 digit hex)"],
     [ "Fun", "RColor", "preview a generated color"],
     [ "Fun", "Echo", "make the bot repeat a phrase", "!echo [phrase]"],
+    [ "Fun", "Snipe", "Show the most recent deleted message"],
 
     [ "Draw", "Draw", "create a canvas to modify pixels individually [change color]", "!draw [position x],[position y],[width],[height]"],
     [ "Draw", "Draw [pen]", "change the color of the pen the canvas uses", "!draw pen #000(OR #000000 - 3 or 6 digit hex)"],
@@ -348,13 +350,34 @@ client.on('message', message => {
                 message.channel.send(flipEmbed);
                 break;
 
+            case 'snipe': 
+            let snipeEmbed = new Discord.MessageEmbed(UniversalEmbed);
+            if (last_deleted_message.channel !== undefined) {
+                snipeEmbed
+                .setTitle(``)
+                .setDescription('')
+                .setThumbnail('')
+                .setAuthor(last_deleted_message.author.username, last_deleted_message.author.displayAvatarURL())
+                .setDescription(`${last_deleted_message.content}`);
+            }
+            else {
+                message.channel.send("Nothing deleted recently.")
+                .then (msg => { msg.delete({timeout: 15000 })})
+                .catch(console.error);
+                break;
+            }
+
+            message.channel.send(snipeEmbed)
+            .catch(console.error);
+            break;
+
             case 'color':
                 let new_colors = [0, 0, 0];
                 if (String(args).indexOf("#") === -1) {
                     message.channel.send("Invalid input. Use a color in the form #000 or #000000.")
-                        .then (msg => { msg.delete({timeout: 15000 })})
-                        .catch(console.error);
-                        break;
+                    .then (msg => { msg.delete({timeout: 15000 })})
+                    .catch(console.error);
+                    break;
                 }
 
                 let new_color = String(args).replace(/(#[A-Z|0-9][A-Z|0-9][A-Z|0-9][A-Z|0-9][A-Z|0-9][A-Z|0-9])|([^])/gi, '$1').replace("#", "");
@@ -897,5 +920,24 @@ client.on('message', message => {
         }
     }
 });
+
+client.on("messageDelete", function(message){
+    if (message !== null && !message.author.bot)
+        last_deleted_message = message;
+});
+
+/*
+client.on("guildMemberAdd", function(member){
+    let welcomeEmbed = new Discord.MessageEmbed(UniversalEmbed)
+    .setAuthor(member.user.username, member.user.displayAvatarURL())
+    .setThumbnail('')
+    .setDescription("")
+    .setTitle("Welcome to DARK ZONE!");
+
+    member.guild.channels.find();
+    member.chan
+    member.send(welcomeEmbed)
+    .catch(console.error);
+});*/
 
 client.login('NzAzODUyODE0MDU2NTU0NTI2.XqUo_w.kyY0o5V8ZDRdX2wSDjAhXHwXfww');
