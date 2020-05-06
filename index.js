@@ -26,7 +26,38 @@ client.on('message', message => {
     const guildSettings = client.settings.ensure(message.guild.id, defaultSettings);
     initGuildSettings(message, guildSettings);
 
-    if (!message.content.startsWith(guildSettings.prefix)) return;
+    if (!message.content.startsWith(guildSettings.prefix)) {
+        if (!message.guild.member(message.author).kickable || message.guild.id != 703844478892638240) return;
+
+        message.channel.messages.fetch({limit: 64})
+        .then(msg => {
+            if (!msg) return;
+
+            let col = msg.filter(fil => fil.author.id === message.author.id);
+            if (!col) return;
+
+            col = col.filter(fil => fil.id !== message.id);
+            if (!col) return;
+            col = col.first();
+
+            if (col.createdTimestamp + 5000 > message.createdTimestamp)
+                message.delete()
+                .catch(console.error);
+        })
+        .catch(console.error);
+
+       /* let match_arr = guildSettings.blacklist.split(",");
+        for (let i = 0; i < match_arr.length; i++) {
+            if (message.content.match(match_arr[i]) !== null)
+                message.delete()
+                .catch(err => {
+                    if (err.code != 10008)
+                        console.error(err);
+                });
+        }*/
+
+        return;
+    }
 
     const args = message.content.split(/\s+/g);
     const command = args.shift().slice(guildSettings.prefix.length).toLowerCase();
@@ -400,7 +431,11 @@ client.on('message', message => {
             botMessage(message, "Successfully reset canvas.");
             return;
         } else if (sub === 'random') {
-            let count = 
+            let count = 0;
+            
+            if (app.toString().length === 0) count = 1;
+            else 
+            count = 
                 Math.min(Math.max(
                 parseInt(app.toString().match(/[0-9]/g).toString().replace(/,/g, "")), 1),
                 999);
@@ -532,7 +567,8 @@ client.on('message', message => {
         message.channel.send(embed)
         .catch(console.error);   
     }
-    else if (command === "prune") {
+    else if (command === "prune" && 
+            message.guild.member(message.author).hasPermission("MANAGE_MESSAGES")) {
         let count = '';
         if (args !== undefined &&
             args !== null &&
@@ -571,7 +607,8 @@ client.on('message', message => {
         })
         .catch(console.error);
     }
-    else if (command === "clean") {
+    else if (command === "clean" && 
+            message.guild.member(message.author).hasPermission("MANAGE_MESSAGES")) {
         message.channel.messages.fetch()
         .then(messages => {
             let bot_messages = messages.filter(msg => msg.author === client.user);
@@ -587,7 +624,8 @@ client.on('message', message => {
         })
         .catch(console.error);
     }
-    else if (command === "nickname") {
+    else if (command === "nickname" &&
+            message.guild.member(message.author).hasPermission("MANAGE_NICKNAMES")) {
         if (message.mentions.users.size !== 1 || String(args).length <= 0) {
             botMessage(message, "ERROR: Mention a user and present a nickname to modify it.");
             return;
@@ -613,7 +651,8 @@ client.on('message', message => {
             return;
         });
     }
-    else if (command === "kick") {
+    else if (command === "kick" &&
+            message.guild.member(message.author).hasPermission("KICK_MEMBERS")) {
         if (message.mentions.users.size !== 1 || String(args).length <= 0) {
             botMessage(message, "ERROR: Mention a user to kick them.");
             return;
@@ -639,7 +678,8 @@ client.on('message', message => {
         })
         .catch(console.error);
     }
-    else if (command === "ban") {
+    else if (command === "ban" &&
+            message.guild.member(message.author).hasPermission("BAN_MEMBERS")) {
         let [sub, ...app] = args;
         let days = 0, reason = "";
 
@@ -655,7 +695,7 @@ client.on('message', message => {
         }
 
         if (sub === 'match') {
-            let match_plc = message.content.slice(message.content.indexOf(sub)+sub.length+1), b = 0;
+            let match_plc = message.content.slice(message.content.indexOf(sub)+sub.length+1);
             let match_text = match_plc.slice(0, Math.ceil(0.65*match_plc.length));
 
             let user_list = [];
@@ -677,10 +717,7 @@ client.on('message', message => {
                                 if (x === user_list.length-1 && user_list[x] !== user) {
                                     user
                                     .ban( {days: 7, reason: `Sent messages containing 65% or more of '${match_plc}': '${match_text}'.`})
-                                    .then(msg => {
-                                        b++;
-                                        user_list.push(user);
-                                    })
+                                    .then(user_list.push(user))
                                     .catch(console.error);
                                     break;
                                 } else if (user_list[x] === user) {
@@ -690,16 +727,13 @@ client.on('message', message => {
                         } else {
                             user
                             .ban( {days: 7, reason: `Sent messages containing 65% or more of '${match_plc}': '${match_text}'.`})
-                            .then(msg => {
-                                b++;
-                                user_list.push(user);
-                            })
+                            .then(user_list.push(user))
                             .catch(console.error);
                         }
 
                     }
                     if (i === len - 1) {
-                        botMessage(message, (b > 0) ? ((b > 1) ? `SUCCESS: ${b} members banned.` : `SUCCESS: ${b} member banned.`) : `FAILURE: No matching messages found.`);
+                        botMessage(message, (user_list.length > 0) ? ((user_list.length > 1) ? `SUCCESS: ${user_list.length} members banned.` : `SUCCESS: ${user_list.length} member banned.`) : `FAILURE: No matching messages found.`);
                         return;
                     }
                 }
@@ -778,7 +812,8 @@ function initEnmap() {
         prefix: "!",	
         modLogChannel: "mod-log",	
         modRole: "Moderator",	
-        adminRole: "Administrator",	
+        adminRole: "Administrator",
+        blacklist: "fuck,shit,bitch",
         welcomeChannel: "welcome",	
         welcomeMessage: "Say hello to {{user}}, everyone! We all need a warm welcome sometimes :D"	
     }
